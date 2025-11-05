@@ -1,0 +1,90 @@
+import pandas as pd
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.svm import SVC
+from sklearn.preprocessing import StandardScaler
+
+
+df = pd.read_csv(r"E:\7thsemcodes\ML\emails\emails.csv")
+print("\nOriginal Data Shape:", df.shape)
+print(df.head())
+
+
+df = df.dropna()
+print("After Removing Null Values:", df.shape)
+
+
+X = df.iloc[:, 1:-1]
+y = df["Prediction"]    
+
+print("\nFeature Matrix Shape:", X.shape)
+print("Target Shape:", y.shape)
+
+
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+
+X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, random_state=10)
+
+
+
+knn = KNeighborsClassifier(n_neighbors=5)
+knn.fit(X_train, y_train)
+y_pred_knn = knn.predict(X_test)
+
+
+svm = SVC(kernel='linear')
+svm.fit(X_train, y_train)
+y_pred_svm = svm.predict(X_test)
+
+def evaluate(model_name, y_test, y_pred):
+    acc = accuracy_score(y_test, y_pred)
+    print(f"\n{model_name} Accuracy: {acc:.3f}")
+    print("Classification Report:\n", classification_report(y_test, y_pred))
+    print("Confusion Matrix:\n", confusion_matrix(y_test, y_pred))
+
+print("\n------ MODEL PERFORMANCE RESULT ------")
+evaluate("K-Nearest Neighbors (KNN)", y_test, y_pred_knn)
+evaluate("Support Vector Machine (SVM)", y_test, y_pred_svm)
+
+
+comparison_knn = pd.DataFrame({"Actual": y_test.values, "Predicted (KNN)": y_pred_knn})
+comparison_svm = pd.DataFrame({"Actual": y_test.values, "Predicted (SVM)": y_pred_svm})
+
+print("\nKNN - Actual vs Predicted (First 10 Rows):\n")
+print(comparison_knn.head(10))
+
+print("\nSVM - Actual vs Predicted (First 10 Rows):\n")
+print(comparison_svm.head(10))
+
+
+plt.figure(figsize=(6,4))
+sns.heatmap(confusion_matrix(y_test, y_pred_knn), annot=True, cmap="Blues")
+plt.title("KNN Confusion Matrix")
+plt.xlabel("Predicted")
+plt.ylabel("Actual")
+plt.show()
+
+plt.figure(figsize=(6,4))
+sns.heatmap(confusion_matrix(y_test, y_pred_svm), annot=True, cmap="Greens")
+plt.title("SVM Confusion Matrix")
+plt.xlabel("Predicted")
+plt.ylabel("Actual")
+plt.show()
+
+
+from sklearn.neighbors import NearestNeighbors
+
+sample = X_test[0].reshape(1, -1)
+
+nbrs = NearestNeighbors(n_neighbors=5).fit(X_train)
+distances, indices = nbrs.kneighbors(sample)
+
+print("Nearest Neighbors' Outcomes:", y_train.iloc[indices[0]])
+

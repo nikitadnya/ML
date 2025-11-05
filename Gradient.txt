@@ -1,0 +1,49 @@
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+
+def f(x):
+    return (x + 3)**2
+
+
+def gradient(x):
+    return 2 * (x + 3)
+
+
+x = 2                      
+alpha = 0.1                
+iterations = 30           
+
+x_path = []
+
+print("\nGradient Descent to minimize y = (x + 3)^2\n")
+print("Iteration\t   x value\t   f(x)")
+
+for i in range(iterations):
+    x_path.append(x)
+    y = f(x)
+    print(f"{i+1:3d}\t\t {x:.6f}\t   {y:.6f}")
+    x = x - alpha * gradient(x)   # Update step
+
+
+print("\n--------------------------------------")
+print(f"Approximate minimum occurs at x = {x:.6f}")
+print(f"Minimum value of function f(x) = {f(x):.6f}")
+print("--------------------------------------")
+
+
+x_curve = np.linspace(-10, 4, 200)
+y_curve = f(x_curve)
+
+plt.figure(figsize=(8,5))
+plt.plot(x_curve, y_curve, label="y = (x+3)^2")
+plt.scatter(x_path, [f(val) for val in x_path], color='red', label="Gradient Descent Steps")
+plt.plot(x_path, [f(val) for val in x_path], '--', color='red')
+
+plt.title("Gradient Descent Path Towards Minimum")
+plt.xlabel("x")
+plt.ylabel("f(x)")
+plt.legend()
+plt.grid(True)
+plt.show()

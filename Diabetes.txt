@@ -1,0 +1,67 @@
+import pandas as pd
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+
+
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, recall_score, classification_report
+
+df = pd.read_csv(r"E:\7thsemcodes\ML\diabetes.csv")
+df = df.dropna()
+
+X = df.drop("Outcome", axis=1)
+y = df["Outcome"]
+
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.25, random_state=42)
+
+knn = KNeighborsClassifier(n_neighbors=5)
+knn.fit(X_train, y_train)
+y_pred = knn.predict(X_test)
+
+cm = confusion_matrix(y_test, y_pred)
+accuracy = accuracy_score(y_test, y_pred)
+error_rate = 1 - accuracy
+precision = precision_score(y_test, y_pred)
+recall = recall_score(y_test, y_pred)
+
+print("\nCONFUSION MATRIX:\n", cm)
+print("\nAccuracy:", round(accuracy, 4))
+print("Error Rate:", round(error_rate, 4))
+print("Precision:", round(precision, 4))
+print("Recall:", round(recall, 4))
+print("\nCLASSIFICATION REPORT:")
+print(classification_report(y_test, y_pred))
+
+comparison = pd.DataFrame({"Actual": y_test.values, "Predicted": y_pred})
+print("\nACTUAL vs PREDICTED (First 15 Rows):\n")
+print(comparison.head(15))
+
+
+accuracy_list = []
+k_range = range(1, 10)
+
+for k in k_range:
+    model = KNeighborsClassifier(n_neighbors=k)
+    model.fit(X_train, y_train)
+    pred_k = model.predict(X_test)
+    accuracy_list.append(accuracy_score(y_test, pred_k))
+print(accuracy_list)
+plt.figure(figsize=(6,4))
+plt.plot(k_range, accuracy_list, marker='o')
+plt.title("K Value vs Accuracy")
+plt.xlabel("K Value")
+plt.ylabel("Accuracy")
+plt.show()
+
+plt.figure(figsize=(6,4))
+sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', cbar=False)
+plt.title("KNN Confusion Matrix - Diabetes Prediction")
+plt.xlabel("Predicted")
+plt.ylabel("Actual")
+plt.show()
