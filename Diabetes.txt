@@ -4,10 +4,8 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-
-
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, recall_score, classification_report
+from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, recall_score, f1_score, classification_report
 
 df = pd.read_csv(r"E:\7thsemcodes\ML\diabetes.csv")
 df = df.dropna()
@@ -25,38 +23,53 @@ knn.fit(X_train, y_train)
 y_pred = knn.predict(X_test)
 
 cm = confusion_matrix(y_test, y_pred)
-accuracy = accuracy_score(y_test, y_pred)
-error_rate = 1 - accuracy
-precision = precision_score(y_test, y_pred)
-recall = recall_score(y_test, y_pred)
+tn, fp, fn, tp = cm.ravel()
 
-print("\nCONFUSION MATRIX:\n", cm)
-print("\nAccuracy:", round(accuracy, 4))
-print("Error Rate:", round(error_rate, 4))
-print("Precision:", round(precision, 4))
-print("Recall:", round(recall, 4))
-print("\nCLASSIFICATION REPORT:")
+accuracy_sklearn = accuracy_score(y_test, y_pred)
+precision_sklearn = precision_score(y_test, y_pred)
+recall_sklearn = recall_score(y_test, y_pred)
+f1_sklearn = f1_score(y_test, y_pred)
+
+accuracy_manual = (tp + tn) / (tp + tn + fp + fn)
+precision_manual = tp / (tp + fp) if (tp + fp) != 0 else 0
+recall_manual = tp / (tp + fn) if (tp + fn) != 0 else 0
+f1_manual = 2 * (precision_manual * recall_manual) / (precision_manual + recall_manual) if (precision_manual + recall_manual) != 0 else 0
+
+print("CONFUSION MATRIX:\n", cm)
+print("\nMetrics using sklearn functions:")
+print(f"Accuracy: {accuracy_sklearn:.4f}")
+print(f"Precision: {precision_sklearn:.4f}")
+print(f"Recall: {recall_sklearn:.4f}")
+print(f"F1-score: {f1_sklearn:.4f}")
+
+print("\nMetrics using TP, TN, FP, FN manually:")
+print(f"TP: {tp}, TN: {tn}, FP: {fp}, FN: {fn}")
+print(f"Accuracy: {accuracy_manual:.4f}")
+print(f"Precision: {precision_manual:.4f}")
+print(f"Recall: {recall_manual:.4f}")
+print(f"F1-score: {f1_manual:.4f}")
+
+print("\nCLASSIFICATION REPORT:\n")
 print(classification_report(y_test, y_pred))
 
 comparison = pd.DataFrame({"Actual": y_test.values, "Predicted": y_pred})
 print("\nACTUAL vs PREDICTED (First 15 Rows):\n")
 print(comparison.head(15))
 
-
 accuracy_list = []
 k_range = range(1, 10)
-
 for k in k_range:
     model = KNeighborsClassifier(n_neighbors=k)
     model.fit(X_train, y_train)
     pred_k = model.predict(X_test)
     accuracy_list.append(accuracy_score(y_test, pred_k))
-print(accuracy_list)
+
 plt.figure(figsize=(6,4))
 plt.plot(k_range, accuracy_list, marker='o')
 plt.title("K Value vs Accuracy")
 plt.xlabel("K Value")
 plt.ylabel("Accuracy")
+plt.grid()
 plt.show()
 
 plt.figure(figsize=(6,4))
